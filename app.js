@@ -16,22 +16,36 @@ app.listen(8080);
 		res.sendfile(__dirname + '/index.html');
 	});
 
+// zombie browser testing
+	browser = new Browser();
+	function load_browser() {
+		browser.visit("http://herebox.org/", function () {
+			assert.ok(browser.success);
+			console.dir("browser.errors: "+ browser.errors);
+			console.dir("browser.statusCode: "+ browser.statusCode);
+		});
+		//$('#in').append(browser.html('img:first-child'));
+		return "boximgs: " + browser.html('img');
+	}
+	
+	// browser.html('img:first-child');
+
 // sockets.io docs
 	io.sockets.on('connection', function (socket) {
+		// onload
 		socket.emit('news', { hello: 'world' });
+		
+		// listeners
 		socket.on('my other event', function (data) {
 			console.log(data);
 		});
+		socket.on('nom', load_browser);
+		socket.on('addimg', function (data) {
+			console.log(data);
+			load_browser();
+		});
 	});
-
-// zombie browser testing
-	browser = new Browser();
-	browser.visit("http://herebox.org/", function () {
-		assert.ok(browser.success);
-		console.dir("browser.errors: "+ browser.errors);
-		console.dir("browser.statusCode: "+ browser.statusCode);
-	});
-
+	
 // chat tutorial from http://psitsmike.com/2011/09/node-js-and-socket-io-chat-tutorial/
 	var usernames = {};
 

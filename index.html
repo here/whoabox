@@ -14,6 +14,7 @@
         $(function(){
 		$('#nom').click( function() {
 			$('#nom').append(' .nom. ').css('font-size', '+=3');
+			socket.emit('nom');
 			//function(index){ return index; });
 			$('#in').append('radhed');
 		});
@@ -22,6 +23,11 @@
 	/// zombie ///
 
 	$(function(){
+		$('#in').click( function() {
+			socket.emit('addimg','#in'); // this?
+			// $('#in').append(browser.html('img:first-child'));
+		});
+/*
 		browser = new Browser();
 		browser.visit("http://herebox.org/", function () {
 			assert.ok(browser.success);
@@ -30,6 +36,7 @@
 		});
 		// browser.html('img:first-child');
 		$('#in').append(browser.html('img:first-child'));
+*/
 	});
 	
 	/// chats ///
