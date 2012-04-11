@@ -3,11 +3,36 @@
 <script>
 	var socket = io.connect('http://wherebox.org:8080');
 
-	// on connection to server, ask for user's name with an anonymous callback
+	// connect
 	socket.on('connect', function(){
 		// call the server-side function 'adduser' and send one parameter (value of prompt)
-		socket.emit('adduser', prompt("What's your name?"));
+		// socket.emit('adduser', prompt("What's your name?"));
+		socket.emit('adduser', 'samy'); // is my hero.
 	});
+
+        // on load of page
+        $(function(){
+		$('#nom').click( function() {
+			$('#nom').append(' .nom. ').css('font-size', '+=3');
+			//function(index){ return index; });
+			$('#in').append('radhed');
+		});
+        });
+
+	/// zombie ///
+
+	$(function(){
+		browser = new Browser();
+		browser.visit("http://herebox.org/", function () {
+			assert.ok(browser.success);
+			console.dir("browser.errors: "+ browser.errors);
+			console.dir("browser.statusCode: "+ browser.statusCode);
+		});
+		// browser.html('img:first-child');
+		$('#in').append(browser.html('img:first-child'));
+	});
+	
+	/// chats ///
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
 	socket.on('updatechat', function (username, data) {
@@ -41,13 +66,19 @@
 		});
 	});
 
+	/// end chats ///
+
 </script>
 <div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
 	<b>USERS</b>
 	<div id="users"></div>
 </div>
+<div id="nom" style:"font-size:10px">nom</div>
 <div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
 	<div id="conversation"></div>
 	<input id="data" style="width:200px;" />
 	<input type="button" id="datasend" value="send" />
+</div>
+<div id="in">
+	
 </div>

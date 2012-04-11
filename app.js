@@ -1,3 +1,9 @@
+
+// node.js socket.io express zombie fuck yeah playground
+//
+// adapted from http://psitsmike.com/2011/09/node-js-and-socket-io-chat-tutorial/
+// thanks bro, come visit seattle again soon!
+
 var app = require('express').createServer()
 var io = require('socket.io').listen(app);
 var Browser = require('zombie');
@@ -5,24 +11,31 @@ var assert = require('assert');
 
 app.listen(8080);
 
-browser = new Browser();
-browser.visit("http://herebox.org/", function () {
+// routing
+	app.get('/', function (req, res) {
+		res.sendfile(__dirname + '/index.html');
+	});
+
+// sockets.io docs
+	io.sockets.on('connection', function (socket) {
+		socket.emit('news', { hello: 'world' });
+		socket.on('my other event', function (data) {
+			console.log(data);
+		});
+	});
+
+// zombie browser testing
+	browser = new Browser();
+	browser.visit("http://herebox.org/", function () {
 		assert.ok(browser.success);
 		console.dir("browser.errors: "+ browser.errors);
 		console.dir("browser.statusCode: "+ browser.statusCode);
 	});
 
+// chat tutorial from http://psitsmike.com/2011/09/node-js-and-socket-io-chat-tutorial/
+	var usernames = {};
 
-// routing
-app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
-});
-
-// usernames which are currently connected to the chat
-var usernames = {};
-
-io.sockets.on('connection', function (socket) {
-
+	io.sockets.on('connection', function (socket) {
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
