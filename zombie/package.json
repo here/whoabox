@@ -1,11 +1,12 @@
 {
-     "name": "chatbox",
-     "description": "example chat application with socket.io",
+     "name": "whoabox",
+     "description": "testing node.js express socket.io zombie request oauth",
      "version": "0.0.1",
      "dependencies": {
         "express": "2.5.8",
         "socket.io": "0.9.5",
         "zombie": "0.12.15",
-        "request": "2.9.202"
-     }
+        "request": "2.9.202",
+        "oauth": "0.9.6"
+    }
 }
