@@ -1,45 +1,35 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>
-	var socket = io.connect('http://wherebox.org:8080');
 
-	// connect
+	// connect to node server using socket.io.js
+    var socket = io.connect('http://wherebox.org:8080');
+
+    // do this on connect
 	socket.on('connect', function(){
 		// call the server-side function 'adduser' and send one parameter (value of prompt)
 		// socket.emit('adduser', prompt("What's your name?"));
 		socket.emit('adduser', 'samy'); // is my hero.
+        console.log('samy your are my hero');
 	});
 
-        // on load of page
-        $(function(){
+    // on load of page
+    $(function(){
 		$('#nom').click( function() {
 			$('#nom').append(' .nom. ').css('font-size', '+=3');
 			socket.emit('nom');
-			//function(index){ return index; });
-			$('#in').append('radhed');
+			//$('#in').append('radhed');
 		});
-        });
+    });
 
-	/// zombie ///
+    socket.on('in', function (data) {
+        var str = JSON.stringify(data);
+        console.log('data: '+str);
+        console.log(data);
+        $('#in').append('<li>'+data.count+': '+data.title+' / '+data.comments+'</li>');
+    });
 
-	$(function(){
-		$('#in').click( function() {
-			socket.emit('addimg','#in'); // this?
-			// $('#in').append(browser.html('img:first-child'));
-		});
-/*
-		browser = new Browser();
-		browser.visit("http://herebox.org/", function () {
-			assert.ok(browser.success);
-			console.dir("browser.errors: "+ browser.errors);
-			console.dir("browser.statusCode: "+ browser.statusCode);
-		});
-		// browser.html('img:first-child');
-		$('#in').append(browser.html('img:first-child'));
-*/
-	});
-	
-	/// chats ///
+	/// unrelated chats stuff ///
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body
 	socket.on('updatechat', function (username, data) {
@@ -80,12 +70,11 @@
 	<b>USERS</b>
 	<div id="users"></div>
 </div>
-<div id="nom" style:"font-size:10px">nom</div>
+<div id="nom" style:"font-size:10px">click me: nom</div>
 <div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
 	<div id="conversation"></div>
 	<input id="data" style="width:200px;" />
 	<input type="button" id="datasend" value="send" />
 </div>
 <div id="in">
-	
 </div>

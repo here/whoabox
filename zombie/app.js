@@ -9,6 +9,8 @@ var io = require('socket.io').listen(app);
 var Browser = require('zombie');
 var assert = require('assert');
 
+var count = 0;
+
 app.listen(8080);
 
 // routing
@@ -16,37 +18,46 @@ app.listen(8080);
 		res.sendfile(__dirname + '/index.html');
 	});
 
-// zombie browser testing
+    // zombie browser testing
+    // https://github.com/assaf/zombie
 	browser = new Browser();
-	function load_browser() {
-		browser.visit("http://herebox.org/", function () {
-			assert.ok(browser.success);
-			console.dir("browser.errors: "+ browser.errors);
-			console.dir("browser.statusCode: "+ browser.statusCode);
-		});
-		//$('#in').append(browser.html('img:first-child'));
-		return "boximgs: " + browser.html('img');
-	}
-	
-	// browser.html('img:first-child');
+    
+    browser.on("error", function(err) {
+        console.log("Error:", err);
+    });
+    browser.on("loaded", function() {    
+        console.log ("Loaded:", browser.statusCode);
+        console.log ("Location: ", browser.location._url.href);
+    });
 
-// sockets.io docs
+    // sockets.io docs
 	io.sockets.on('connection', function (socket) {
 		// onload
 		socket.emit('news', { hello: 'world' });
-		
+
 		// listeners
 		socket.on('my other event', function (data) {
 			console.log(data);
 		});
-		socket.on('nom', load_browser);
-		socket.on('addimg', function (data) {
-			console.log(data);
-			load_browser();
-		});
+		socket.on('nom', function(){
+            socket.emit('news', {hello: 'internet' });
+            browser.visit("http://reddit.com/top/", function () {
+                var t1 = browser.html('div.entry.unvoted:eq('+count+') a.title')
+                var t2 = browser.html('div.entry.unvoted:eq('+count+') a.comments')
+                count++; if (count > 9) count = 0;
+
+                console.log("browser.statusCode: "+ browser.statusCode);
+                console.log(t1);
+                socket.emit('in', {
+                    title: t1,
+                    comments: t2,
+                    count: count
+                }); 
+            });
+        });
 	});
 	
-// chat tutorial from http://psitsmike.com/2011/09/node-js-and-socket-io-chat-tutorial/
+    // chat tutorial from http://psitsmike.com/2011/09/node-js-and-socket-io-chat-tutorial/
 	var usernames = {};
 
 	io.sockets.on('connection', function (socket) {
