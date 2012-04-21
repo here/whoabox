@@ -18,6 +18,16 @@ app.listen(8080);
 		res.sendfile(__dirname + '/index.html');
 	});
 
+    // request testing
+    // https://github.com/mikeal/request
+    var request = require('request');
+    request('http://www.google.com', function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            r = JSON.stringify(response);
+            console.log('request: '+r) // Print the google web page.
+        }
+    });
+
     // zombie browser testing
     // https://github.com/assaf/zombie
 	browser = new Browser();
