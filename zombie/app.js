@@ -6,8 +6,10 @@
 
 var app = require('express').createServer()
 var io = require('socket.io').listen(app);
+var request = require('request');
 var Browser = require('zombie');
 var assert = require('assert');
+var qs = require('querystring');
 
 var count = 0;
 
@@ -16,21 +18,52 @@ app.listen(8080);
     // routing
 	app.get('/', function (req, res) {
 		res.sendfile(__dirname + '/index.html');
+        
 	});
+
+    app.get('/t/*',function (req, res) {
+        console.log(req.url);
+
+        // get basic search results in json from twitter
+        // need to capture #s
+        var end = 'http://search.twitter.com/search.json?q='+escape(req.url.slice(3).replace('/','+'));
+        var opts = { uri: end, json: 'json' };
+        request(opts, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                  //console.log(body);
+                  //console.log(body.results);
+                  res.send(body.results[1].from_user+' : '+body.results[1].text);
+            }
+            else { //console.log(error); console.log(response); 
+            }
+        });
+    });
 
     var OAuth = require('oauth').OAuth;
 
-    var oa = new OAuth(
-        "https://api.twitter.com/oauth/request_token",
-        "https://api.twitter.com/oauth/access_token",
-        "BUYxCKLyMtbzJ77noDTvQ", //consumer key
-        "cgKuX13aU4T9oyI2mGZphg1SItAQNY7nzWHgwmp4tQg", //consumer secret
-        "1.0",
-        "http://wherebox.org:8080/auth/twitter/callback",
-        "HMAC-SHA1"
-    );
-
     // oauth and callback example from http://moonlitscript.com/post.cfm/how-to-use-oauth-and-twitter-in-your-node-js-expressjs-app/
+    app.get('/auth/twitter', function(req, res){
+        // Twitter OAuth from https://github.com/mikeal/request
+        //res.send('yeahhi');
+        oa.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results){
+            if (error) {
+                console.log(error);
+                res.send("yeah no. didn't work.")
+            }
+            else {
+                console.log(req);
+                req.session = {};
+                req.session.oauth = {};
+                req.session.oauth.token = oauth_token;
+                console.log('oauth.token: ' + req.session.oauth.token);
+                req.session.oauth.token_secret = oauth_token_secret;
+                console.log('oauth.token_secret: ' + req.session.oauth.token_secret);
+                res.redirect('https://twitter.com/oauth/authenticate?oauth_token='+oauth_token)
+                console.log('end of success');
+            }
+        });
+    }); 
+
     app.get('/auth/twitter/callback', function(req, res, next){
         if (req.session.oauth) {
             req.session.oauth.verifier = req.query.oauth_verifier;
@@ -53,78 +86,16 @@ app.listen(8080);
             next(new Error("you're not supposed to be here."))
     });
 
-    app.get('/auth/twitter', function(req, res){
-        oa.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results){
-            if (error) {
-                console.log(error);
-                res.send("yeah no. didn't work.")
-            }
-            else {
-                //console.log(JSON.stringify(req));
-                req.session.oauth = {};
-                req.session.oauth.token = oauth_token;
-                console.log('oauth.token: ' + req.session.oauth.token);
-                req.session.oauth.token_secret = oauth_token_secret;
-                console.log('oauth.token_secret: ' + req.session.oauth.token_secret);
-                res.redirect('https://twitter.com/oauth/authenticate?oauth_token='+oauth_token)
-        }
-        });
-    });
-
     // request testing
     // https://github.com/mikeal/request
     var request = require('request');
     //request('http://www.google.com', function (error, response, body) {
-    request('https://api.twitter.com/statuses/home_', function (error, response, body) {
+    request('https://api.twitter.com/statuses/user_timeline.json/?screen_name=herebox&count=1', function (error, response, body) {
         if (!error && response.statusCode == 200) {
             r = JSON.stringify(response);
             console.log('success request');
-            //console.log('request: '+r) // Print the google web page.
+            console.log('request: '+body) // Print the google web page.
         }
-    });
-
-    // Twitter OAuth from https://github.com/mikeal/request
-    var qs = require('querystring')
-      , oauth =
-        { callback: 'http://wherebox.org:8080/callback/'
-        , consumer_key: 'BUYxCKLyMtbzJ77noDTvQ'
-        , consumer_secret: 'cgKuX13aU4T9oyI2mGZphg1SItAQNY7nzWHgwmp4tQg'
-        }
-      , url = 'https://api.twitter.com/oauth/request_token'
-      ;
-
-    request.post({url:url, oauth:oauth}, function (e, r, body) {
-      // Assume by some stretch of magic you aquired the verifier
-      var access_token = qs.parse(body)
-        , oauth = 
-          { consumer_key: 'BUYxCKLyMtbzJ77noDTvQ'
-          , consumer_secret: 'cgKuX13aU4T9oyI2mGZphg1SItAQNY7nzWHgwmp4tQg'
-          , token: access_token.oauth_token
-//          , verifier: 'VERIFIER'
-          , token_secret: access_token.oauth_token_secret
-          }
-        , url = 'https://api.twitter.com/oauth/access_token'
-        ;
-
-      request.post({url:url, oauth:oauth}, function (e, r, body) {
-        var perm_token = qs.parse(body)
-          , oauth = 
-            { consumer_key: 'BUYxCKLyMtbzJ77noDTvQ'
-            , consumer_secret: 'cgKuX13aU4T9oyI2mGZphg1SItAQNY7nzWHgwmp4tQg'
-            , token: perm_token.oauth_token
-            , token_secret: perm_token.oauth_token_secret
-            }
-          , url = 'https://api.twitter.com/1/users/show.json?'
-          , params = 
-            { screen_name: perm_token.screen_name
-            , user_id: perm_token.user_id
-            }
-          ;
-        url += qs.stringify(params);
-        request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
-          console.log(user);
-        });
-      });
     });
 
 
