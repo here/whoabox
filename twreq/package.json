@@ -1,0 +1,9 @@
+{
+     "name": "twreq",
+     "description": "node.js express request twitter",
+     "version": "0.0.1",
+     "dependencies": {
+        "express": "2.5.8",
+        "request": "2.9.202"
+    }
+}
