@@ -31,8 +31,10 @@ app.listen(8080);
         request(opts, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                   //console.log(body);
-                  //console.log(body.results);
-                  res.send(body.results[1].from_user+' : '+body.results[1].text);
+                 if(body.results[0]) res.send(body.results[0].from_user+' : '+body.results[0].text);
+                 else {res.send('you are so unique');
+                  console.log(body.results[0]);
+                 }
             }
             else { //console.log(error); console.log(response); 
             }
